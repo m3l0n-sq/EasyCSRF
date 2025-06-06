@@ -30,6 +30,7 @@ class EasyCSRF
      *
      * @param  string $key Key for this token
      * @return string
+     * @throws \Exception
      */
     public function generate($key)
     {
@@ -47,8 +48,10 @@ class EasyCSRF
      *
      * @param  string  $key            Key for this token
      * @param  string  $token          The token string (usually found in $_POST)
-     * @param  int     $timespan       Makes the token expire after $timespan seconds (null = never)
+     * @param  int|null     $timespan       Makes the token expire after $timespan seconds (null = never)
      * @param  boolean $multiple       Makes the token reusable and not one-time (Useful for ajax-heavy requests)
+     * @throws InvalidCsrfTokenException
+     * @throws \Exception
      */
     public function check($key, $token, $timespan = null, $multiple = false)
     {
@@ -96,6 +99,7 @@ class EasyCSRF
      * Create a new token.
      *
      * @return string
+     * @throws \Exception
      */
     protected function createToken()
     {
@@ -104,17 +108,34 @@ class EasyCSRF
     }
 
     /**
+     * Get a session-specific secret.
+     * If one is not available, a new one will be generated and stored in the session.
+     *
+     * @return string
+     * @throws \Exception
+     */
+    protected function getSessionSecret()
+    {
+        $secretKey = $this->session_prefix . 'secret';
+        $secret = $this->session->get($secretKey);
+
+        if ($secret === null) {
+            $secret = bin2hex(random_bytes(32));
+            $this->session->set($secretKey, $secret);
+        }
+
+        return $secret;
+    }
+
+    /**
      * Return a unique referral hash.
      *
      * @return string
+     * @throws \Exception
      */
     protected function referralHash()
     {
-        if (empty($_SERVER['HTTP_USER_AGENT'])) {
-            return sha1($_SERVER['REMOTE_ADDR']);
-        }
-
-        return sha1($_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']);
+        return sha1($this->getSessionSecret());
     }
 
     /**

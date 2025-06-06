@@ -122,6 +122,14 @@ $sessionProvider = new CustomSessionProvider();
 $easyCSRF = new EasyCSRF\EasyCSRF($sessionProvider);
 ```
 
+## Fork Information
+
+This repository is a fork of the original `gilbitron/easycsrf` library. The primary goal of this fork is to modernize the security practices and improve reliability.
+
+### Key Enhancements
+
+*   **Improved CSRF Token Generation**: The core CSRF token generation logic has been refactored. Instead of relying on the user's `REMOTE_ADDR` (IP address), which can be unreliable for users behind a proxy or with dynamic IPs, this fork now uses a cryptographically secure, session-specific secret. This provides a more robust and secure defense against CSRF attacks, following the synchronizer token pattern.
+
 ## Credits
 
 EasyCSRF was created by [Gilbert Pellegrom](http://gilbert.pellegrom.me) from [Dev7studios](http://dev7studios.co).
