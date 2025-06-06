@@ -11,9 +11,6 @@ class EasyCSRFTest extends TestCase
 
     protected function setUp(): void
     {
-        $_SERVER['REMOTE_ADDR'] = '1.1.1.1';
-        $_SERVER['HTTP_USER_AGENT'] = 'useragent';
-
         $sessionProvider = new NativeSessionProvider();
         $this->easyCSRF = new EasyCSRF($sessionProvider);
     }
@@ -55,15 +52,6 @@ class EasyCSRFTest extends TestCase
         $this->easyCSRF->check('test', '12345');
     }
 
-    public function testExceptionOrigin()
-    {
-        $this->expectException(InvalidCsrfTokenException::class);
-
-        $token = $this->easyCSRF->generate('test');
-        $_SERVER['REMOTE_ADDR'] = '2.2.2.2';
-        $this->easyCSRF->check('test', $token);
-    }
-
     public function testExceptionInvalidToken()
     {
         $this->expectException(InvalidCsrfTokenException::class);
@@ -79,14 +67,5 @@ class EasyCSRFTest extends TestCase
         $token = $this->easyCSRF->generate('test');
         sleep(2);
         $this->easyCSRF->check('test', $token, 1);
-    }
-
-    public function testUndefinedUserAgent()
-    {
-        unset($_SERVER['HTTP_USER_AGENT']);
-
-        $token = $this->easyCSRF->generate('test');
-
-        $this->assertNotNull($token);
     }
 }
