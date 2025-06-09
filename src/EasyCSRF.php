@@ -15,14 +15,21 @@ class EasyCSRF
     /**
      * @var string
      */
-    protected $session_prefix = 'easycsrf_';
+    protected $sessionPrefix = 'easycsrf_';
+
+    /**
+     * @var bool
+     */
+    protected $ipCheck;
 
     /**
      * @param SessionProvider $sessionProvider
+     * @param bool $ipCheck
      */
-    public function __construct(SessionProvider $sessionProvider)
+    public function __construct(SessionProvider $sessionProvider, $ipCheck = true)
     {
         $this->session = $sessionProvider;
+        $this->ipCheck = $ipCheck;
     }
 
     /**
@@ -38,7 +45,7 @@ class EasyCSRF
 
         $token = $this->createToken();
 
-        $this->session->set($this->session_prefix . $key, $token);
+        $this->session->set($this->sessionPrefix . $key, $token);
 
         return $token;
     }
@@ -58,16 +65,16 @@ class EasyCSRF
         $key = $this->sanitizeKey($key);
 
         if (!$token) {
-            throw new InvalidCsrfTokenException('Invalid CSRF token');
+            throw new InvalidCsrfTokenException('CSRF token is missing');
         }
 
-        $sessionToken = $this->session->get($this->session_prefix . $key);
+        $sessionToken = $this->session->get($this->sessionPrefix . $key);
         if (!$sessionToken) {
             throw new InvalidCsrfTokenException('Invalid CSRF session token');
         }
 
         if (!$multiple) {
-            $this->session->set($this->session_prefix . $key, null);
+            $this->session->set($this->sessionPrefix . $key, null);
         }
 
         if ($this->referralHash() !== substr(base64_decode($sessionToken), 10, 40)) {
@@ -109,14 +116,14 @@ class EasyCSRF
 
     /**
      * Get a session-specific secret.
-     * If one is not available, a new one will be generated and stored in the session.
+     * If one is not $this->sessionPrefixwill be generated and stored in the session.
      *
      * @return string
      * @throws \Exception
      */
     protected function getSessionSecret()
     {
-        $secretKey = $this->session_prefix . 'secret';
+        $secretKey = $this->sessionPrefix . 'secret';
         $secret = $this->session->get($secretKey);
 
         if ($secret === null) {
@@ -135,6 +142,14 @@ class EasyCSRF
      */
     protected function referralHash()
     {
+        if ($this->ipCheck) {
+            if (empty($_SERVER['HTTP_USER_AGENT'])) {
+                return sha1($_SERVER['REMOTE_ADDR']);
+            }
+
+            return sha1($_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT']);
+        }
+
         return sha1($this->getSessionSecret());
     }
 
