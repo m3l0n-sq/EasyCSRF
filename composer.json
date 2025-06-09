@@ -1,11 +1,15 @@
 {
-    "name": "gilbitron/easycsrf",
+    "name": "m3l0n-sq/easycsrf",
     "description": "A simple, standalone CSRF protection library",
     "license": "MIT",
     "authors": [
         {
             "name": "Gilbert Pellegrom",
             "email": "gilbert@pellegrom.me"
+        },
+        {
+            "name": "m3l0n-sq",
+            "email": "m3l0n-sq@squirro.com"
         }
     ],
     "type": "library",
